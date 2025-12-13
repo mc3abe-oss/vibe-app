@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
 import { ProfileForm } from "./profile-form";
@@ -44,6 +45,15 @@ export default async function DashboardPage() {
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
             You are signed in as <span className="font-medium">{user.email}</span>
           </p>
+
+          <div className="mt-4">
+            <Link
+              href="/dashboard/notes"
+              className="text-sm font-medium text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-zinc-300"
+            >
+              Notes &rarr;
+            </Link>
+          </div>
 
           {profile ? (
             <div className="mt-6">
