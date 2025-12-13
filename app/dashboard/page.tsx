@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
+import { ProfileForm } from "./profile-form";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,37 +45,22 @@ export default async function DashboardPage() {
             You are signed in as <span className="font-medium">{user.email}</span>
           </p>
 
-          <div className="mt-6">
-            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-              Your Profile
-            </h3>
-            {profile ? (
-              <dl className="mt-2 space-y-2 text-sm">
-                <div className="flex gap-2">
-                  <dt className="text-zinc-500 dark:text-zinc-400">ID:</dt>
-                  <dd className="font-mono text-zinc-700 dark:text-zinc-300">
-                    {profile.id}
-                  </dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-zinc-500 dark:text-zinc-400">Email:</dt>
-                  <dd className="text-zinc-700 dark:text-zinc-300">
-                    {profile.email}
-                  </dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-zinc-500 dark:text-zinc-400">Created:</dt>
-                  <dd className="text-zinc-700 dark:text-zinc-300">
-                    {new Date(profile.created_at).toLocaleDateString()}
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          {profile ? (
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Edit Profile
+              </h3>
+              <div className="mt-4">
+                <ProfileForm profile={profile} />
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 No profile found. Run the SQL migration to create the profiles table.
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
