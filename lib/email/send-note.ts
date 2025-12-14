@@ -19,7 +19,7 @@ export async function sendNoteEmail({
   recipients,
   title,
   body,
-  senderEmail = 'notes@yourdomain.com',
+  senderEmail = 'onboarding@resend.dev',
   senderName = 'Vibe App Notes'
 }: SendNoteEmailParams) {
   if (!process.env.RESEND_API_KEY) {
