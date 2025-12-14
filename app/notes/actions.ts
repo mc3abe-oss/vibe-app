@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sendNoteEmail, type EmailRecipient } from "@/lib/email/send-note";
 
 export type ActionResult = {
   success: boolean;
@@ -70,6 +71,26 @@ export async function createNote(formData: FormData): Promise<ActionResult> {
     if (recipientError) {
       console.error("[createNote] Recipients insert error:", recipientError);
       // Note was created, so we don't fail the whole operation
+    } else {
+      // Send email to recipients after successfully saving them
+      console.log("[createNote] Sending email to recipients...");
+      const emailRecipients: EmailRecipient[] = recipients.map(r => ({
+        email: r.email,
+        role: r.role as 'to' | 'cc'
+      }));
+
+      const emailResult = await sendNoteEmail({
+        recipients: emailRecipients,
+        title: title || 'New Note',
+        body: body || '',
+      });
+
+      if (!emailResult.success) {
+        console.error("[createNote] Email sending failed:", emailResult.message);
+        // Don't fail the whole operation if email fails
+      } else {
+        console.log("[createNote] Email sent successfully");
+      }
     }
   }
 
