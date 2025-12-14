@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -78,7 +79,15 @@ export default async function DashboardPage() {
               <div className="text-sm font-medium">Homepage</div>
               <div className="mt-1 text-xs text-white/70">Change the landing page vibe</div>
             </Link>
-
+            <Link
+              href="/notes"
+              className="rounded-xl border border-white/12 bg-white/5 p-4 hover:bg-white/10"
+            >
+              <div className="text-sm font-medium">Notes</div>
+              <div className="mt-1 text-xs text-white/70">
+                Capture ideas, thoughts, and todos
+              </div>
+            </Link>
             <Link
               href="/login"
               className="rounded-xl border border-white/12 bg-white/5 p-4 hover:bg-white/10"

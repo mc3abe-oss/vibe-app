@@ -27,12 +27,12 @@ export function NoteForm({ note, onCancel, onSuccess }: NoteFormProps) {
     setLoading(true);
 
     try {
-      const result = isEditing ? await updateNote(formData) : await createNote(formData);
-      if (result.error) {
-        setMessage({ type: "error", text: result.error });
+      if (isEditing) {
+        await updateNote(formData);
       } else {
-        onSuccess();
+        await createNote(formData);
       }
+      onSuccess();
     } catch {
       setMessage({ type: "error", text: "An unexpected error occurred" });
     } finally {

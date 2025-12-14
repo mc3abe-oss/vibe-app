@@ -35,10 +35,8 @@ export function NotesList({ initialNotes }: { initialNotes: Note[] }) {
     const formData = new FormData();
     formData.append("id", id);
 
-    const result = await deleteNote(formData);
-    if (!result.error) {
-      setNotes(notes.filter((n) => n.id !== id));
-    }
+    await deleteNote(formData);
+    setNotes(notes.filter((n) => n.id !== id));
     setDeletingId(null);
   }
 

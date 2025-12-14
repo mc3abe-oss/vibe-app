@@ -1,16 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { login } from "./actions";
 
-export default function LoginPage() {
+function LoginForm() {
   const params = useSearchParams();
   const error = params.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  return (
+    <form
+      action={login}
+      className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
+    >
+      <h1 className="text-2xl font-semibold">Welcome back</h1>
+      <p className="text-sm text-white/70">Snowman security is watching ⛄️</p>
+
+      {error && (
+        <div className="mt-4 rounded bg-red-500/20 px-3 py-2 text-sm">
+          {error}
+        </div>
+      )}
+
+      <label className="mt-5 block text-sm">Email</label>
+      <input
+        name="email"
+        type="email"
+        required
+        className="mt-1 w-full rounded bg-white/10 px-3 py-2"
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <label className="mt-4 block text-sm">Password</label>
+      <input
+        name="password"
+        type="password"
+        required
+        className="mt-1 w-full rounded bg-white/10 px-3 py-2"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button
+        type="submit"
+        className="mt-6 w-full rounded bg-white py-2 text-slate-900 font-medium"
+      >
+        Log in
+      </button>
+    </form>
+  );
+}
+
+export default function LoginPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
       {/* Snowman backdrop */}
@@ -40,44 +83,13 @@ export default function LoginPage() {
 
       {/* Login card */}
       <div className="relative flex min-h-screen items-center justify-center px-6">
-        <form
-          action={login}
-          className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-        >
-          <h1 className="text-2xl font-semibold">Welcome back</h1>
-          <p className="text-sm text-white/70">Snowman security is watching ⛄️</p>
-
-          {error && (
-            <div className="mt-4 rounded bg-red-500/20 px-3 py-2 text-sm">
-              {error}
-            </div>
-          )}
-
-          <label className="mt-5 block text-sm">Email</label>
-          <input
-            name="email"
-            type="email"
-            required
-            className="mt-1 w-full rounded bg-white/10 px-3 py-2"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <label className="mt-4 block text-sm">Password</label>
-          <input
-            name="password"
-            type="password"
-            required
-            className="mt-1 w-full rounded bg-white/10 px-3 py-2"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <button
-            type="submit"
-            className="mt-6 w-full rounded bg-white py-2 text-slate-900 font-medium"
-          >
-            Log in
-          </button>
-        </form>
+        <Suspense fallback={
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <div className="animate-pulse">Loading...</div>
+          </div>
+        }>
+          <LoginForm />
+        </Suspense>
       </div>
     </main>
   );
