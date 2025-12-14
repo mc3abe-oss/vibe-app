@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+export type ActionResult = {
+  success: boolean;
+  error?: string;
+};
+
 function parseEmails(input: string): string[] {
   if (!input || !input.trim()) return [];
   return input
@@ -12,11 +17,17 @@ function parseEmails(input: string): string[] {
     .filter((email) => email.length > 0);
 }
 
-export async function createNote(formData: FormData) {
+export async function createNote(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[createNote] Auth error:", authError);
+    return { success: false, error: "Authentication failed" };
+  }
 
   if (!user) {
+    console.error("[createNote] No user found, redirecting to login");
     redirect("/login");
   }
 
@@ -24,6 +35,9 @@ export async function createNote(formData: FormData) {
   const body = formData.get("body") as string;
   const toEmails = parseEmails(formData.get("to") as string);
   const ccEmails = parseEmails(formData.get("cc") as string);
+
+  console.log("[createNote] Attempting to create note for user:", user.id);
+  console.log("[createNote] Title:", title, "Body length:", body?.length || 0);
 
   const { data: note, error } = await supabase
     .from("notes")
@@ -36,8 +50,11 @@ export async function createNote(formData: FormData) {
     .single();
 
   if (error) {
-    return;
+    console.error("[createNote] Supabase insert error:", error);
+    return { success: false, error: error.message };
   }
+
+  console.log("[createNote] Note created with id:", note.id);
 
   // Insert recipients if any
   const recipients = [
@@ -46,17 +63,31 @@ export async function createNote(formData: FormData) {
   ];
 
   if (recipients.length > 0) {
-    await supabase.from("note_recipients").insert(recipients);
+    const { error: recipientError } = await supabase
+      .from("note_recipients")
+      .insert(recipients);
+
+    if (recipientError) {
+      console.error("[createNote] Recipients insert error:", recipientError);
+      // Note was created, so we don't fail the whole operation
+    }
   }
 
   revalidatePath("/notes");
+  return { success: true };
 }
 
-export async function updateNote(formData: FormData) {
+export async function updateNote(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[updateNote] Auth error:", authError);
+    return { success: false, error: "Authentication failed" };
+  }
 
   if (!user) {
+    console.error("[updateNote] No user found, redirecting to login");
     redirect("/login");
   }
 
@@ -64,7 +95,9 @@ export async function updateNote(formData: FormData) {
   const title = formData.get("title") as string;
   const body = formData.get("body") as string;
 
-  await supabase
+  console.log("[updateNote] Updating note:", id);
+
+  const { error } = await supabase
     .from("notes")
     .update({
       title: title || null,
@@ -73,24 +106,46 @@ export async function updateNote(formData: FormData) {
     .eq("id", id)
     .eq("user_id", user.id);
 
+  if (error) {
+    console.error("[updateNote] Supabase update error:", error);
+    return { success: false, error: error.message };
+  }
+
+  console.log("[updateNote] Note updated successfully");
   revalidatePath("/notes");
+  return { success: true };
 }
 
-export async function deleteNote(formData: FormData) {
+export async function deleteNote(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[deleteNote] Auth error:", authError);
+    return { success: false, error: "Authentication failed" };
+  }
 
   if (!user) {
+    console.error("[deleteNote] No user found, redirecting to login");
     redirect("/login");
   }
 
   const id = formData.get("id") as string;
 
-  await supabase
+  console.log("[deleteNote] Deleting note:", id);
+
+  const { error } = await supabase
     .from("notes")
     .delete()
     .eq("id", id)
     .eq("user_id", user.id);
 
+  if (error) {
+    console.error("[deleteNote] Supabase delete error:", error);
+    return { success: false, error: error.message };
+  }
+
+  console.log("[deleteNote] Note deleted successfully");
   revalidatePath("/notes");
+  return { success: true };
 }
